@@ -1,6 +1,6 @@
-# 🔐 Sistema de Autenticación con JWT
+# 🔐 Sistema de Autenticación con JWT + PostgreSQL
 
-API REST de autenticación construida con Node.js y Express. Implementa registro de usuarios, login y rutas protegidas usando JSON Web Tokens (JWT) y encriptación de contraseñas con bcrypt.
+API REST de autenticación construida con Node.js y Express. Registro de usuarios, login y rutas protegidas usando JWT, bcrypt y PostgreSQL en Railway.
 
 ---
 
@@ -8,152 +8,76 @@ API REST de autenticación construida con Node.js y Express. Implementa registro
 
 | Método | Ruta | Descripción | Protegida |
 |--------|------|-------------|-----------|
-| `POST` | `/api/usuarios/registro` | Crear cuenta nueva | ❌ |
-| `POST` | `/api/usuarios/login` | Iniciar sesión y obtener token | ❌ |
-| `GET` | `/api/usuarios/perfil` | Ver perfil del usuario autenticado | ✅ |
+| `POST` | `/usuarios/registro` | Crear cuenta nueva | ❌ |
+| `POST` | `/usuarios/login` | Iniciar sesión y obtener token | ❌ |
+| `GET` | `/usuarios/perfil` | Ver perfil del usuario autenticado | ✅ |
 
 ---
 
 ## 🛠️ Tecnologías
 
-- **Node.js** — entorno de ejecución
-- **Express** — framework para el servidor
-- **jsonwebtoken** — generación y verificación de tokens JWT
+- **Node.js + Express**
+- **jsonwebtoken** — tokens JWT
 - **bcrypt** — encriptación de contraseñas
-- **Postman** — testing de endpoints
+- **pg** — driver para PostgreSQL
+- **dotenv** — variables de entorno
+- **PostgreSQL en Railway** — base de datos en la nube
 
 ---
 
 ## 📁 Arquitectura MVC
-
-```
-login-jwt/
-├── app.js                      # Punto de entrada del servidor
-├── routes/
-│   └── auth.js                 # Definición de rutas
-├── controllers/
-│   └── auth.js                 # Lógica de negocio
-├── models/
-│   └── usuarios.js             # Datos en memoria
-└── middleware/
-    └── verificarToken.js       # Validación de JWT
-```
 
 ---
 
 ## ⚙️ Instalación
 
 ```bash
-# Clonar el repositorio
 git clone https://github.com/iguardiaDev/login-jwt.git
-
-# Entrar a la carpeta
 cd login-jwt
-
-# Instalar dependencias
 npm install
+```
 
-# Iniciar el servidor
+Crear archivo `.env`:
+
+
+```bash
 node app.js
 ```
 
-El servidor corre en `http://localhost:3000`
-
 ---
 
-## 📬 Uso con Postman
+## 🗄️ Base de datos
 
-### 1 — Registro
-```
-POST http://localhost:3000/api/usuarios/registro
-```
-```json
-{
-    "nombre": "Daniel",
-    "email": "daniel@gmail.com",
-    "password": "miPassword123"
-}
-```
-
-**Respuesta:**
-```json
-{
-    "mensaje": "Usuario registrado correctamente",
-    "usuario": {
-        "id": 1,
-        "nombre": "Daniel",
-        "email": "daniel@gmail.com"
-    }
-}
-```
-
----
-
-### 2 — Login
-```
-POST http://localhost:3000/api/usuarios/login
-```
-```json
-{
-    "email": "daniel@gmail.com",
-    "password": "miPassword123"
-}
-```
-
-**Respuesta:**
-```json
-{
-    "mensaje": "Login exitoso",
-    "token": "eyJhbGciOiJIUzI1NiJ9..."
-}
-```
-
----
-
-### 3 — Perfil (ruta protegida)
-```
-GET http://localhost:3000/api/usuarios/perfil
-```
-
-**Header requerido:**
-```
-authorization: eyJhbGciOiJIUzI1NiJ9...
-```
-
-**Respuesta:**
-```json
-{
-    "mensaje": "Bienvenido a tu perfil",
-    "usuario": {
-        "id": 1,
-        "email": "daniel@gmail.com"
-    }
-}
+```sql
+CREATE TABLE usuarios (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
 ```
 
 ---
 
 ## 🔒 Seguridad
 
-- Las contraseñas nunca se guardan en texto plano — se encriptan con **bcrypt** usando 10 salt rounds
-- Los tokens JWT expiran en **1 hora**
-- Las rutas protegidas verifican el token antes de ejecutar cualquier lógica
-- Tokens inválidos o expirados reciben respuesta `401 Unauthorized`
+- Contraseñas encriptadas con bcrypt (10 salt rounds)
+- Tokens JWT con expiración de 1 hora
+- Rutas protegidas con middleware de verificación
+- Tokens inválidos reciben `401 Unauthorized`
+- `DATABASE_URL` en `.env`, nunca en GitHub
 
 ---
 
-## 📖 Flujo de autenticación
+## 🔄 Flujo
 
-```
-1. Usuario se registra → contraseña se encripta con bcrypt
-2. Usuario hace login → servidor verifica credenciales
-3. Login exitoso → servidor genera token JWT firmado
-4. Usuario manda token en cada petición protegida
-5. Middleware verifica el token antes de dar acceso
-```
+1. **Registro** — bcrypt encripta la contraseña y se guarda en PostgreSQL
+2. **Login** — se verifica la contraseña y se genera un token JWT
+3. **Perfil** — el middleware valida el token antes de dar acceso
 
 ---
 
 ## 👨‍💻 Autor
 
-**Daniel Iguardia** — [iguardiadev.github.io](https://iguardiadev.github.io)
+**Daniel Iguardia** — [GitHub](https://github.com/iguardiaDev)
