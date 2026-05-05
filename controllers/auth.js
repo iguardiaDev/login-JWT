@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt'); //Importamos la herramienta bcrypt
-const usuarios = require('../models/usuarios'); //Importamos usuarios de modelos
+const {crearUsuario, buscarEmail} = require('../models/usuarios'); //Importamos usuarios de modelos
 const jwt = require('jsonwebtoken'); //Importamos json web token
+
 
 //Creamos una funcion asincrona para registrar el nuevo usuario
 const registrar = async (req, res) =>
@@ -9,34 +10,26 @@ const registrar = async (req, res) =>
     {
         //Obtenemos del cliente estos datos
         const {nombre, email, password} = req.body;
-        const usuarioExiste = usuarios.find(usuarios => usuarios.email === email);
 
+        const usuarioExiste = await buscarEmail(email);
         if(usuarioExiste)
         {
-            res.status(400).json({mensaje: "El usuario ya existe"});
+            res.status(400).json({mensaje: "El email ya existe"});
         }
 
         //await para que espere a que se termine de encriptar la contraseña, el 10 es para los saaltos de seguridad
         //Pueden ser 8, 10 y 12, pero entre mas alto mas lento, pero mas seguro
         const passEncriptada = await bcrypt.hash(password, 10);
         
-        const nuevoUsuario =
-        {
-            id: usuarios.length + 1,
-            nombre: nombre,
-            email: email,
-            password: passEncriptada
-        };
-        
-        usuarios.push(nuevoUsuario);
+        const usuario = crearUsuario(nombre, email, passEncriptada);
         
         res.status(201).json({
             mensaje: "Usuario registrado correctamente",
             usuario:
             {
-                id: nuevoUsuario.id,
-                nombre: nuevoUsuario.nombre,
-                email: nuevoUsuario.email
+                id: usuario.id,
+                nombre: usuario.nombre,
+                email: usuario.email
             }
         });
     }
@@ -56,7 +49,7 @@ const login = async (req, res) =>
         const {email, password} = req.body;
 
         //Comparamos el correo que ingreso el usuario con los del arreglo
-        const loginUsuario = usuarios.find(usuarios => usuarios.email === email);  
+        const loginUsuario = await buscarEmail(email);
         if(!loginUsuario)
         {
             return res.status(400).json({mensaje: "Usuario no encontrado"});
@@ -88,9 +81,9 @@ const login = async (req, res) =>
 
 };
 
-const perfil = (req, res) =>
+const perfil = async (req, res) =>
 {
-    res.status(200).json({mensaje: "Bienveneido", usuario: req.usuario});
+    res.status(200).json({mensaje: "Bienvenido", usuario: req.usuario});
 };
 
 module.exports = {perfil, registrar, login};
