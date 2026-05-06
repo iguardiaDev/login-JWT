@@ -14,16 +14,16 @@ const registrar = async (req, res) =>
         const usuarioExiste = await buscarEmail(email);
         if(usuarioExiste)
         {
-            res.status(400).json({mensaje: "El email ya existe"});
+            return res.status(400).json({mensaje: "El email ya existe"});
         }
 
         //await para que espere a que se termine de encriptar la contraseña, el 10 es para los saaltos de seguridad
         //Pueden ser 8, 10 y 12, pero entre mas alto mas lento, pero mas seguro
         const passEncriptada = await bcrypt.hash(password, 10);
         
-        const usuario = crearUsuario(nombre, email, passEncriptada);
+        const usuario = await crearUsuario(nombre, email, passEncriptada);
         
-        res.status(201).json({
+        return res.status(201).json({
             mensaje: "Usuario registrado correctamente",
             usuario:
             {
@@ -36,7 +36,7 @@ const registrar = async (req, res) =>
     catch (error)
     {
         console.log(error);
-        res.status(500).json({mensaje: "Error al registrar el usuario"});
+        return res.status(500).json({mensaje: "Error al registrar el usuario"});
     }
 };
 
