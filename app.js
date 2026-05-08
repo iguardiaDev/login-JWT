@@ -3,7 +3,7 @@ const routes = require('./routes/auth');
 const express = require('express');
 const app = express();
 const cors = require('cors');
-app.use(cors({origin: ['https://front-end-login-topaz.vercel.app/', 'http://localhost:3000']}));
+app.use(cors({origin: ['https://front-end-login-topaz.vercel.app', 'http://localhost:3001']}));
 
 app.use(express.json());
 app.use('/usuarios', routes);
